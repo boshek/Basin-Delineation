@@ -16,6 +16,8 @@ library(maptools)
 library(RSAGA)
 library(gdalUtils)
 library(rcanvec)
+library(tidyhydat)
+library(HydroTool)
 
 # source files
 source('M:/R/HydroTool/R/misc.R', echo=TRUE)
@@ -31,14 +33,17 @@ source('M:/R/HydroTool/R/basin_creation.R', echo=TRUE)
 #' We'll need to set some directory paths, make sure to use absolute paths
 ####
 
-HYBAS_Limits_dir <- "C:/NB/wkdir/HB_basin" # where should intermediate HYBAS-derived basins be saved?
-Final_output_dir <- "C:/NB/wkdir/final_basin" # where should final basins be saved?
-DEM_basin_dir <- "C:/NB/wkdir/DEM_basin" # where should intermediate DEM-derived basins be saved?
-HYDROSHEDS_DEM_path <- "C:/Users/brownn/Downloads/HydroSHEDS_DEM_3s"  # what is root directory of hydrosheds DEM tiles
-CDED_DEM_path <-  "C:/NB/wkdir/DEM"  # what is root directory of CDED DEM tiles (these will be downloaded as necessary)
-temp_dir <- "C:/NB/wkdir/tempfiles"  # directory for temporary files
-saga_dir <- "C:/NB/saga222/"         # directory containing saga executable and libraries
-lakes_dir= 'C:/NB/wkdir/lakes'       # where should lake polygons be saved?
+data_path <- rappdirs::user_data_dir(appname = "HydroTool", appauthor = NULL)
+
+HYBAS_Limits_dir <- file.path(data_path, "HB_basin") # where should intermediate HYBAS-derived basins be saved?
+Final_output_dir <- file.path(data_path, "final_basin") # where should final basins be saved?
+DEM_basin_dir <- file.path(data_path, "DEM_basin") # where should intermediate DEM-derived basins be saved?
+HYDROSHEDS_DEM_path <- file.path(data_path, "HydroSHEDS_DEM_3s")  # what is root directory of hydrosheds DEM tiles
+CDED_DEM_path <-  file.path(data_path, "DEM")  # what is root directory of CDED DEM tiles (these will be downloaded as necessary)
+temp_dir <- file.path(data_path)  # directory for temporary files
+dir.create(temp_dir)
+saga_dir <- "C:/SAGA-GIS"  # directory containing saga executable and libraries. This will be OS specific
+lakes_dir= file.path(data_path, "lakes")       # where should lake polygons be saved?
 
 ##############
 #' and also create a saga geoprocessing object (ignore the warning if it complains about the path)
@@ -48,16 +53,14 @@ envi <- rsaga.env(path=saga_dir, workspace=temp_dir)
 ##############
 #' next, we need hydrobasins polygons data (here, north america level 12)
 #############
-HYBAS <- readOGR("C:/Users/brownn/Downloads/Canada_Clipped_Hydrobasins/hybas_na_lev12_v1c.shp", stringsAsFactors = F)
+HYBAS <- readOGR(file.path("C:/Users/salbers/Downloads/Canada_Clipped_Hydrobasins/hybas_na_lev12_v1c.shp"), stringsAsFactors = F)
 
 ##############
-#' next, we want station coordinates, we'll get them from a HYDAT sqlite database
+#' next, we want station coordinates, we'll get them from a HYDAT sqlite database using the tidyhydat package. tidyhydat stores an up to date internal
+#' dataframe of stations and their coordindates. SpatialHydat converts that data to an sp object
 #'
 #############
-sqlite.path <- "C:/Program Files (x86)/ECCC/ECDataExplorer/Database/Hydat.sqlite3"
-con <- dbConnect(RSQLite::SQLite(), sqlite.path)
-stations <- SpatialHydat(con)
-dbDisconnect(con)
+stations <- SpatialHydat()
 
 ##############
 #' Let's use 08NE123 as an example, it is in a hydrobasin with no upstream basins,
@@ -65,7 +68,7 @@ dbDisconnect(con)
 #' We'll make a dataframe with this information
 #'
 #############
-stn <- stations[stations$station_number == '08NE123', ]
+stn <- stations[stations$STATION_NUMBER == '08NE123', ]
 h_id = HYBAS$HYBAS_ID[which(gIntersects(stn, HYBAS, byid=T))] #7120262830
 df <- data.frame(list(station_number = '08NE123', code="T", HYBAS_ID = h_id), stringsAsFactors = F)
 
@@ -82,7 +85,7 @@ bs1 = HYBASBasinLimits(df = df, HYBAS=HYBAS, code=df$code, outdir=HYBAS_Limits_d
 #' is on the main branch below the confluence, so it has a code of 'Pcb'
 #'
 #############
-st2 <- stations[stations$station_number == "08HD032", ]
+st2 <- stations[stations$STATION_NUMBER == "08HD032", ]
 h_id2 = HYBAS$HYBAS_ID[which(gIntersects(st2, HYBAS, byid=T))] #7120262830
 df2 <- data.frame(list(station_number = '08HD032', code="Pcb", HYBAS_ID = h_id2))
 bs2 = HYBASBasinLimits(df = df2, HYBAS=HYBAS, code=df2$code, outdir=HYBAS_Limits_dir)

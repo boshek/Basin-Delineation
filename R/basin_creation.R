@@ -82,7 +82,8 @@ HYBASBasinLimits <- function(df, HYBAS, code, outdir,
   out <- HYBAS[HYBAS$HYBAS_ID %in% ids, ]
   outname <- paste(df[, stn_id], "HYBAS_Basin.shp", sep = "_")
   outfile <- file.path(outdir, outname)
-  writeOGR(obj = out, dsn = outfile, layer = gsub("\\.shp", "", outname),
+  dir.create(outdir)
+  writeOGR(obj = out, dsn = outdir, layer = gsub("\\.shp", "", outname),
            driver = "ESRI Shapefile", overwrite_layer = T)
 
   return(outfile)
