@@ -4,7 +4,11 @@
 These scripts were created to generate basin delineations and other value-added products from Water Survey of Canada hydrometric stations.
 
 ## Dependencies
-Most dependencies will download automatically provided that you install from a built tar.gz file.  Others will need to be downloaded and installed manually such as [HYDAT](https://github.com/CentreForHydrology/HYDAT)
+Most dependencies will download automatically provided that you install from a built tar.gz file.  Others will need to be downloaded and installed manually such as [HYDAT](https://github.com/CentreForHydrology/HYDAT).
+
+SAGA download and installation instructions can be found [here](https://sourceforge.net/p/saga-gis/wiki/Binary%20Packages/)
+
+You will to manually create a username and password to download the HYDROsheds data from here: http://hydrosheds.org/. You are looking for a file name **hybas_na_lev12_v1c.shp**. Because you manually download this file, you will also need to manually set the path. 
 
 ## Code
 

@@ -14,23 +14,11 @@
 #'
 #' @export
 #===============================================================================
-SpatialHydat <- function(con, ...){
-  if (class(con) == "character"){
-    if (!requireNamespace("RSQLite")){
-      print("Missing library: 'RSQLite'. Please install library")
-      return()
-    }
-    con <- RSQLite::dbConnect(RSQLite::SQLite(), con)
-    }
-  if (!requireNamespace("HYDAT")){
-    print("Missing library: 'HYDAT'. Please install library")
-    return()
-    }
-  Hyd <- HYDAT::StationMetadata(con, ...)
-  coord <- Hyd[, c("longitude", "latitude")]
-  output <- sp::SpatialPointsDataFrame(coords = coord, data = Hyd,
+SpatialHydat <- function(){
+  Hyd <- tidyhydat::allstations
+  coord <- Hyd[, c("LONGITUDE", "LATITUDE")]
+  sp::SpatialPointsDataFrame(coords = coord, data = Hyd,
         proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0") )
-  return(output)
 }
 
 #===============================================================================
